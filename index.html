@@ -38,6 +38,7 @@
 
 <body>
 
+    <!-- Webpage Formatting -->
     <h1 style="text-align: center;">Calgary Building Permit Search Webmap</h1>
 
     <div id="dates" style="text-align: center;"><input type="text" name="daterange" value="" style="text-align: center;"/></div>
@@ -45,8 +46,6 @@
     <div id="map"></div>
 
     <script>
-
-
 
     // initialize the map
     var map = L.map('map').setView([51.0444, -114.0706], 12);
@@ -59,7 +58,7 @@
         minZoom: 9
     }).addTo(map);
 
-    //Set up Markers and Marker Modifiers
+    //Set up Marker and Marker Modifier Layers
     var markers = L.markerClusterGroup();
     var oms = new OverlappingMarkerSpiderfier(map);
     oms.addListener('click', function(marker) {
@@ -72,38 +71,33 @@
     $(function() {
         $('input[name="daterange"]').daterangepicker({
             opens: 'left'
-    }, function(start, end, label) {     
-        markers.clearLayers();
-
-        //Building Permits API Query
-        var dates = "issueddate >= '" + start.format('YYYY-MM-DD') + "' and issueddate <= '" + end.format('YYYY-MM-DD') + "'";
-        axios.get('https://data.calgary.ca/resource/c2es-76ed.geojson', {params: {$where: dates}}).then(function(permits){
-            for (i=0; i<permits.data.features.length; i++){
-                var permit = permits.data.features[i];
-                var lat = permit.properties.latitude; var long = permit.properties.longitude;
-                var date = permit.properties.issueddate; 
-                var workclass = permit.properties.workclassgroup;
-                var contractor = permit.properties.contractorname;
-                var com = permit.properties.communityname;
-                var address = permit.properties.originaladdress;
-
-                var marker = L.marker([lat, long]).bindPopup('<h2>Permit Info</h2>' +
-                     'Date Issued: ' + date + 
-                     '<br/>Work Class Group: ' + workclass +
-                     '<br/>Contractor Name: ' + contractor + 
-                     '<br/>Community Name: ' + com +
-                     '<br/>Original Address: '+ address);
-                markers.addLayer(marker);
-                oms.addMarker(marker);
-            };
-            markers.addTo(map);
-        });
-
+        }, function(start, end, label) {     
+            markers.clearLayers();
+            //Building Permits API Query
+            var dates = "issueddate >= '" + start.format('YYYY-MM-DD') + "' and issueddate <= '" + end.format('YYYY-MM-DD') + "'";
+            axios.get('https://data.calgary.ca/resource/c2es-76ed.geojson', {params: {$where: dates}}).then(function(permits){
+                for (i=0; i<permits.data.features.length; i++){
+                    var permit = permits.data.features[i];
+                    var lat = permit.properties.latitude; var long = permit.properties.longitude;
+                    var date = permit.properties.issueddate; 
+                    var workclass = permit.properties.workclassgroup;
+                    var contractor = permit.properties.contractorname;
+                    var com = permit.properties.communityname;
+                    var address = permit.properties.originaladdress;
+                    //Create Markers
+                    var marker = L.marker([lat, long]).bindPopup('<h2>Permit Info</h2>' +
+                        'Date Issued: ' + date + 
+                        '<br/>Work Class Group: ' + workclass +
+                        '<br/>Contractor Name: ' + contractor + 
+                        '<br/>Community Name: ' + com +
+                        '<br/>Original Address: '+ address);
+                    markers.addLayer(marker);
+                    oms.addMarker(marker);
+                };
+                markers.addTo(map);
+            });
+        });  
     });
-        
-        
-    });
-
 
     </script>
 

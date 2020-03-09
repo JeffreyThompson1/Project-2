@@ -17,6 +17,6 @@ OverlappingMarkerSpiderfier and MarkerCluster plugins are taken from the lab han
 
 -The map was initialized to be centered on downtown Calgary ([lat, lon] = [51.0444, -114.0706])
 
--After selecting a date range, the Calgary Building Permits API was queried by correlating the selecting dates to the issueddate datafield
+-After selecting a date range, the Calgary Building Permits API was queried by correlating the selected dates to the issueddate datafield
 
 -Markers were created for each selected building permit using the lat/long data fields with popups bound to them including all required information as layed out in the lab handout

@@ -1,0 +1,112 @@
+<html>
+
+<head>
+    <title>Calgary Building Permits</title>
+
+    <!-- Leaflet Stylesheet -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css"
+    integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
+    crossorigin=""/>
+
+    <!-- Leaflet Javascript -->
+    <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"
+    integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew=="
+    crossorigin=""></script>
+
+    <!-- Axios (Recommended to help API queries by Aaron Chen) -->
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+    <!-- Date Range Picker Widget from daterangepicker.com -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+
+    <!-- Overlapping Markers Plugin -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/OverlappingMarkerSpiderfier-Leaflet/0.2.6/oms.min.js"></script>
+
+    <!-- Marker Cluster Plugin -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
+    <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+
+    <!-- Map Style -->
+    <style>
+        #map{ height:84%}
+    </style>
+</head>
+
+<body>
+
+    <h1 style="text-align: center;">Calgary Building Permit Search Webmap</h1>
+
+    <div id="dates" style="text-align: center;"><input type="text" name="daterange" value="" style="text-align: center;"/></div>
+    <br>    
+    <div id="map"></div>
+
+    <script>
+
+
+
+    // initialize the map
+    var map = L.map('map').setView([51.0444, -114.0706], 12);
+
+    // load a tile layer 
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    {
+        attribution: 'Tiles by <a href="http://openstreetmap.org">OpenStreetMap</a>, Data by <a href="https://data.calgary.ca/Business-and-Economic-Activity/Building-Permits/c2es-76ed">City of Calgary Building Services</a>',
+        maxZoom: 17,
+        minZoom: 9
+    }).addTo(map);
+
+    //Set up Markers and Marker Modifiers
+    var markers = L.markerClusterGroup();
+    var oms = new OverlappingMarkerSpiderfier(map);
+    oms.addListener('click', function(marker) {
+    popup.setContent(marker.desc);
+    popup.setLatLng(marker.getLatLng());
+    map.openPopup(popup);
+    });
+
+    //Date Range Picker
+    $(function() {
+        $('input[name="daterange"]').daterangepicker({
+            opens: 'left'
+    }, function(start, end, label) {     
+        markers.clearLayers();
+
+        //Building Permits API Query
+        var dates = "issueddate >= '" + start.format('YYYY-MM-DD') + "' and issueddate <= '" + end.format('YYYY-MM-DD') + "'";
+        axios.get('https://data.calgary.ca/resource/c2es-76ed.geojson', {params: {$where: dates}}).then(function(permits){
+            for (i=0; i<permits.data.features.length; i++){
+                var permit = permits.data.features[i];
+                var lat = permit.properties.latitude; var long = permit.properties.longitude;
+                var date = permit.properties.issueddate; 
+                var workclass = permit.properties.workclassgroup;
+                var contractor = permit.properties.contractorname;
+                var com = permit.properties.communityname;
+                var address = permit.properties.originaladdress;
+
+                var marker = L.marker([lat, long]).bindPopup('<h2>Permit Info</h2>' +
+                     'Date Issued: ' + date + 
+                     '<br/>Work Class Group: ' + workclass +
+                     '<br/>Contractor Name: ' + contractor + 
+                     '<br/>Community Name: ' + com +
+                     '<br/>Original Address: '+ address);
+                markers.addLayer(marker);
+                oms.addMarker(marker);
+            };
+            markers.addTo(map);
+        });
+
+    });
+        
+        
+    });
+
+
+    </script>
+
+</body>
+
+</html>

@@ -4,7 +4,7 @@ ENGO 551 Winter 2020 Semester
 Jeffrey Thompson 30021871
 
 
-Webpage utilizes Leaflet to create a webmap (accessible at https://jeffreythompson1.github.io/Project-2/)
+Webpage utilizes Leaflet to create a webmap (accessible at https://jeffreythompson1.github.io/Project-2/index)
 
 BaseMap is taken from OpenStreetMap.com
 

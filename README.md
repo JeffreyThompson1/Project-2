@@ -1,6 +1,6 @@
 # Project-2 
 
-ENGO 551 Winter 2020 Semester
+ENGO 551 Winter 2020
 Jeffrey Thompson 30021871
 
 

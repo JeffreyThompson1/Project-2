@@ -27,7 +27,7 @@ MapBox Style created, published, and added to webpage.
 
 A button was added on the right of the page with an onClick() property that calls the function showTraffic().
 
-showTraffic() is defined at the end of the page, it either adds or removes the TrafficIncidents Layer to the map accordingly and modifies the text in the button to reflect what the button will do if clicked again.
+showTraffic() is defined at the end of the page, it alternates between adding and removing the TrafficIncidents Layer from the map and modifies the text in the button accordingly to reflect what the button will do if clicked again.
 
 
 StyleLayer Properties:

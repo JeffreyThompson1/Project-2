@@ -13,14 +13,18 @@
     integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew=="
     crossorigin=""></script>
 
-    <!-- Axios (Recommended to help API queries by Aaron Chen) -->
+    <!-- Axios (Recommended to help with API queries by Aaron Chen) -->
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 
     <!-- Date Range Picker Widget from daterangepicker.com -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
     <script type="text/javascript" src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+
+    <!-- Mapbox Inclusion -->
+    <link rel="stylesheet" href="https://api.mapbox.com/mapbox.js/v3.2.1/mapbox.css" />
+    <script src="https://api.mapbox.com/mapbox.js/v3.2.1/mapbox.js"></script>
 
     <!-- Overlapping Markers Plugin -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/OverlappingMarkerSpiderfier-Leaflet/0.2.6/oms.min.js"></script>
@@ -32,7 +36,7 @@
 
     <!-- Map Style -->
     <style>
-        #map{ height:84%}
+        #map{ height:80%}
     </style>
 </head>
 
@@ -42,6 +46,7 @@
     <h1 style="text-align: center;">Calgary Building Permit Search Webmap</h1>
 
     <div id="dates" style="text-align: center;"><input type="text" name="daterange" value="" style="text-align: center;"/></div>
+    <div id="incidents" style="text-align: right; margin-right: 100px;"><button onclick="showTraffic()" id="tileButton" >Show 2017 Traffic Incidents</button></div>
     <br>    
     <div id="map"></div>
 
@@ -50,13 +55,19 @@
     // initialize the map
     var map = L.map('map').setView([51.0444, -114.0706], 12);
 
-    // load a tile layer 
+    // load Basemap tile layer 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
     {
-        attribution: 'Tiles by <a href="http://openstreetmap.org">OpenStreetMap</a>, Data by <a href="https://data.calgary.ca/Business-and-Economic-Activity/Building-Permits/c2es-76ed">City of Calgary Building Services</a>',
+        attribution: 'Basemap Tiles by <a href="http://openstreetmap.org">OpenStreetMap</a>, Data by <a href="https://data.calgary.ca/Business-and-Economic-Activity/Building-Permits/c2es-76ed">City of Calgary Building Services</a>',
         maxZoom: 17,
         minZoom: 9
     }).addTo(map);
+
+    // load Traffic Incidents Tile Layer
+    incidents = L.tileLayer('https://api.mapbox.com/styles/v1/ja-thompson/ck7ulgeon0b491is5o20excj4/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoiamEtdGhvbXBzb24iLCJhIjoiY2s3dWg4bmJnMDIxYTNtbjF0NGEyamloNiJ9.V5vBn03QYp1xGMC1HhO5mQ',
+    {
+        attribution: 'Traffic Incidents by <a href="https://data.calgary.ca/Transportation-Transit/Traffic-Incidents-Archive-2017/himp-urp7/data">City of Calgary Transportation Services</a>'
+    });
 
     //Set up Marker and Marker Modifier Layers
     var markers = L.markerClusterGroup();
@@ -98,6 +109,20 @@
             });
         });  
     });
+
+    var show = false;
+    function showTraffic() {
+        if (show){
+            map.removeLayer(incidents);
+            show = false;
+            document.getElementById("tileButton").innerHTML = "Show 2017 Traffic Incidents";
+        }
+        else {
+            incidents.addTo(map)
+            show = true;
+            document.getElementById("tileButton").innerHTML = "Hide 2017 Traffic Incidents";
+        }
+    }
 
     </script>
 

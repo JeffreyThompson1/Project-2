@@ -1,7 +1,7 @@
 <html>
 
 <head>
-    <title>Calgary Building Permits</title>
+    <title>ENGO551 Project 2-4 Calgary Webmap</title>
 
     <!-- Leaflet Stylesheet -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css"
@@ -25,6 +25,7 @@
     <!-- Mapbox Inclusion -->
     <link rel="stylesheet" href="https://api.mapbox.com/mapbox.js/v3.2.1/mapbox.css" />
     <script src="https://api.mapbox.com/mapbox.js/v3.2.1/mapbox.js"></script>
+    <script src='https://api.mapbox.com/mapbox.js/plugins/turf/v3.0.11/turf.min.js'></script>
 
     <!-- Overlapping Markers Plugin -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/OverlappingMarkerSpiderfier-Leaflet/0.2.6/oms.min.js"></script>
@@ -43,10 +44,10 @@
 <body>
 
     <!-- Webpage Formatting -->
-    <h1 style="text-align: center;">Calgary Building Permit Search Webmap</h1>
+    <h1 style="text-align: center;">ENGO551 Project 2-4 Calgary Webmap</h1>
 
     <div id="dates" style="text-align: center;"><input type="text" name="daterange" value="" style="text-align: center;"/></div>
-    <div id="incidents" style="text-align: right; margin-right: 100px;"><button onclick="showTraffic()" id="tileButton" >Show 2017 Traffic Incidents</button></div>
+    <div id="incidents" style="text-align: right; margin-right: 5%;"><button onclick="showTraffic()" id="tileButton" >Show 2017 Traffic Incidents</button></div>
     <br>    
     <div id="map"></div>
 
@@ -68,6 +69,7 @@
     {
         attribution: 'Traffic Incidents by <a href="https://data.calgary.ca/Transportation-Transit/Traffic-Incidents-Archive-2017/himp-urp7/data">City of Calgary Transportation Services</a>'
     });
+
 
     //Set up Marker and Marker Modifier Layers
     var markers = L.markerClusterGroup();
@@ -110,19 +112,133 @@
         });  
     });
 
-    var show = false;
+
+    //Traffic Incidents Toggle Function
+    var showIncidents = false;
     function showTraffic() {
-        if (show){
+        if (showIncidents){
             map.removeLayer(incidents);
-            show = false;
+            showIncidents = false;
             document.getElementById("tileButton").innerHTML = "Show 2017 Traffic Incidents";
         }
         else {
             incidents.addTo(map)
-            show = true;
+            showIncidents = true;
             document.getElementById("tileButton").innerHTML = "Hide 2017 Traffic Incidents";
         }
     }
+
+    var nearestMarker = L.marker([0, 0]);
+    //Functions for Loading Features
+    function whenClicked(e) {
+        console.log(e);
+        var near = turf.nearest(this.feature, hospitals);
+
+        map.removeLayer(nearestMarker);
+        var [lon, lat] = near.geometry.coordinates;
+        nearestMarker = L.marker([lat, lon]).addTo(map);        
+        alert("The Nearest Hospital is: " + near.properties.Name);
+    }
+
+    function onEachFeature(feature, layer){
+        layer.on({
+            click: whenClicked
+        });
+    }     
+    
+    //Icon Loading Functions
+    function createCustomIcon (feature, latlng) {
+    let myIcon = L.icon({
+        iconUrl: 'schoolIcon.png',
+        iconSize:     [15, 15], // width and height of the image in pixels
+        iconAnchor:   [12, 12], // point of the icon which will correspond to marker's location
+        shadowAnchor: [12, 6],  // anchor point of the shadow. should be offset
+        popupAnchor:  [0, 0] // point from which the popup should open relative to the iconAnchor
+    })
+    return L.marker(latlng, { icon: myIcon })
+    }
+
+    function createCustomIcon2 (feature, latlng) {
+    let myIcon = L.icon({
+        iconUrl: 'hospitalIcon.png',
+        iconSize:     [15, 15], // width and height of the image in pixels
+        iconAnchor:   [12, 12], // point of the icon which will correspond to marker's location
+        shadowAnchor: [12, 6],  // anchor point of the shadow. should be offset
+        popupAnchor:  [0, 0] // point from which the popup should open relative to the iconAnchor
+    })
+    return L.marker(latlng, { icon: myIcon })
+    }
+
+    // load schools dataset     School_Locations.csv     https://data.calgary.ca/resource/fd9t-tdn2.json
+    let schoolLayerOptions = {
+    pointToLayer: createCustomIcon,
+    onEachFeature: onEachFeature
+    }
+
+    var schools = L.geoJSON([], schoolLayerOptions).addTo(map);
+
+    axios.get('https://data.calgary.ca/resource/fd9t-tdn2.geojson', {params: {$where: "CITY == 'Calgary'"}}).then(function(list){
+            for (i=0; i<list.data.features.length; i++){
+                var school = list.data.features[i];
+                var name = school.properties.name;
+                var address = school.properties.address_ab;
+                var grades = school.properties.grades;
+                var lat = parseFloat(school.properties.latitude);
+                var lon = parseFloat(school.properties.longitude);
+                var feature = {
+                    "type": "Feature",
+                    "properties": { "Name": name, "Address": address, "Grades": grades},
+                    "geometry": { "type": "Point", "coordinates": [lon, lat]}
+                };
+                //schools.addData(feature);               
+                L.geoJSON(feature, schoolLayerOptions).bindPopup(function (layer) {
+                    return layer.feature.properties.Name;}).addTo(map);
+            };
+    });
+
+    // load medical dataset   Community_Services.csv
+    var hospitals = {
+        "type": "FeatureCollection",
+        "features": [
+            {"type": "Feature", "properties": { "Name": "Thornhill Community Health Centre", "Address": "6617 Centre ST NW"}, 
+            "geometry": { "type": "Point", "coordinates": [-114.06391459432675, 51.11218619333126]}},
+            {"type": "Feature", "properties": { "Name": "North Hill Community Health Centre", "Address": "1527 19 ST NW"}, 
+            "geometry": { "type": "Point", "coordinates": [-114.10650709115143, 51.06532159267874]}},
+            {"type": "Feature", "properties": { "Name": "Sheldon M. Chumir Health Centre", "Address": "1213 - 4 ST SW"}, 
+            "geometry": { "type": "Point", "coordinates": [-114.07212956123551, 51.04116344159869]}},
+            {"type": "Feature", "properties": { "Name": "Foothills Hospital", "Address": "1403 - 29 ST NW"}, 
+            "geometry": { "type": "Point", "coordinates": [-114.13217660430655, 51.064182937103176]}},
+            {"type": "Feature", "properties": { "Name": "Peter Lougheed Medical Centre", "Address": "3500 - 26 AV NE"}, 
+            "geometry": { "type": "Point", "coordinates": [-113.98394351382268, 51.07901634932495]}},
+            {"type": "Feature", "properties": { "Name": "Village Square Community Health Centre", "Address": "2623 - 56 ST NE"}, 
+            "geometry": { "type": "Point", "coordinates": [-113.95355569514419, 51.07553892796213]}},
+            {"type": "Feature", "properties": { "Name": "East Calgary Health Centre", "Address": "4715 8 AV SE"}, 
+            "geometry": { "type": "Point", "coordinates": [-113.9672200855659, 51.04504854027524]}},
+            {"type": "Feature", "properties": { "Name": "Alberta Childrens Hospital", "Address": "2888 Shaganappi Trail NW"}, 
+            "geometry": { "type": "Point", "coordinates": [-114.14795761511185, 51.07455988033879]}},
+            {"type": "Feature", "properties": { "Name": "South Health Campus", "Address": "4448 FRONT ST SE"}, 
+            "geometry": { "type": "Point", "coordinates": [-113.95170381192895, 50.88210185113848]}},
+            {"type": "Feature", "properties": { "Name": "Acadia Community Health Centre", "Address": "151 - 86 AV SE"}, 
+            "geometry": { "type": "Point", "coordinates": [-114.0709401043907, 50.97507203441003]}},
+            {"type": "Feature", "properties": { "Name": "South Calgary Health Centre", "Address": "31 Sunpark Plaza SE"}, 
+            "geometry": { "type": "Point", "coordinates": [-114.05857497443219, 50.90257527258776]}},
+            {"type": "Feature", "properties": { "Name": "Shaganappi Complex Health Centre", "Address": "3415 - 8 AV SW"}, 
+            "geometry": { "type": "Point", "coordinates": [-114.13684189371192, 51.04488712410958]}},
+            {"type": "Feature", "properties": { "Name": "Rockyview General Hospital", "Address": "7007 - 14 ST SW"}, 
+            "geometry": { "type": "Point", "coordinates": [-114.09632069904508, 50.991828888017004]}},
+            {"type": "Feature", "properties": { "Name": "Northwest Community Health Centre", "Address": "109 1829 Ranchlands BV NW"}, 
+            "geometry": { "type": "Point", "coordinates": [-114.1971615208791, 51.123333552258295]}}
+        ]
+    };
+    let hospitalLayerOptions = {
+        pointToLayer: createCustomIcon2
+    }
+
+    var hospitalsLayer = L.geoJSON(hospitals, hospitalLayerOptions).bindPopup(function (layer) {
+                            return layer.feature.properties.Name;
+    }).addTo(map);
+       
+    //TestMarker L.marker([51.0444, -114.0706]).addTo(map);
 
     </script>
 

@@ -35,3 +35,12 @@ StyleLayer Properties:
 - Circle: Radius ranging from 2px at Zoom11 to 12px at Zoom18. This changes the size of the circles to better match the size of the roads.
 
 - Colour: A medium/dark orange colour was selected with approximately 33% opacity. This was to reflect the nature of traffic incidents (traditionally warm colours on maps) as well as allowing the underlying map to be seen through the circles
+
+# Project-3
+
+-Turf.js was added to the webmap
+
+-School and Hospital data were loaded as geoJSON features (Popups were bound to the features as they were added
+
+-An "onclick" function was added to school features that found its nearest hospital feature using turf.nearest(schoolFeature, hospitals)
+

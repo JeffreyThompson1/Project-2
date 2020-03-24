@@ -136,7 +136,11 @@
 
         map.removeLayer(nearestMarker);
         var [lon, lat] = near.geometry.coordinates;
-        nearestMarker = L.marker([lat, lon]).addTo(map);        
+        nearestMarker = L.circle([lat, lon], {
+                            color: 'red',
+                            fillColor: 'blue',
+                            fillOpacity: 0.5,
+                            radius: 100}).addTo(map);        
         alert("The Nearest Hospital is: " + near.properties.Name);
     }
 

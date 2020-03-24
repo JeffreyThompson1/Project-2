@@ -44,3 +44,5 @@ StyleLayer Properties:
 
 -An "onclick" function was added to school features that found its nearest hospital feature using turf.nearest(schoolFeature, hospitals)
 
+-I wanted to make a 'mouseover' event to show the popups for the locations, but the interaction between geoJSON features and popups did not work as expected.
+
